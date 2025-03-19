@@ -11,6 +11,8 @@ local colors = lazy.require("toggleterm.colors")
 local config = lazy.require("toggleterm.config")
 ---@module "toggleterm.terminal"
 local terms = lazy.require("toggleterm.terminal")
+---@module "toggleterm.layout"
+local layout = lazy.require("toggleterm.layout")
 
 local fn = vim.fn
 local fmt = string.format
@@ -242,7 +244,7 @@ function M.guess_direction()
   -- current window is full height vertical split
   -- NOTE: add one for tabline and one for status
   local ui_lines = (vim.o.tabline ~= "" and 1 or 0) + (vim.o.laststatus ~= 0 and 1 or 0)
-  if api.nvim_win_get_height(0) + vim.o.cmdheight + ui_lines == vim.o.lines then
+  if api.nvim_win_get_height(0) + vim.o.cmdheight + ui_lines == layout.get_editor_height() then
     return "vertical"
   end
   -- current window is full width horizontal split
@@ -274,21 +276,21 @@ function M._get_float_config(term, opening)
   local opts = term.float_opts or {}
   local border = opts.border == "curved" and curved or opts.border or "single"
 
-  local width = math.ceil(math.min(vim.o.columns, math.max(80, vim.o.columns - 20)))
-  local height = math.ceil(math.min(vim.o.lines, math.max(20, vim.o.lines - 10)))
+  local width = layout.get_editor_width()
+  local height = layout.get_editor_height()
 
   width = vim.F.if_nil(M._resolve_size(opts.width, term), width)
   height = vim.F.if_nil(M._resolve_size(opts.height, term), height)
 
-  local row = math.ceil(vim.o.lines - height) * 0.5 - 1
-  local col = math.ceil(vim.o.columns - width) * 0.5 - 1
+  local row = math.ceil(layout.get_editor_height() - height) * 0.5 - 1
+  local col = math.ceil(layout.get_editor_width() - width) * 0.5 - 1
 
   row = vim.F.if_nil(M._resolve_size(opts.row, term), row)
   col = vim.F.if_nil(M._resolve_size(opts.col, term), col)
 
   local version = vim.version()
 
-  local float_config = {
+  local original_float_config = {
     row = row,
     col = col,
     relative = opts.relative or "editor",
@@ -298,6 +300,8 @@ function M._get_float_config(term, opening)
     border = opening and border or nil,
     zindex = opts.zindex or nil,
   }
+  local float_config = layout.get_fullscreen_win_opts()
+  float_config = vim.tbl_extend("keep", float_config, original_float_config)
   if version.major > 0 or version.minor >= 9 then
     float_config.title_pos = term.display_name and opts.title_pos or nil
     float_config.title = term.display_name

@@ -44,6 +44,9 @@ local function shade(color, factor) return colors.shade_color(color, factor) end
 
 ---@type ToggleTermConfig
 local config = {
+  open_mapping = "<C-t>",
+  highlights = false,
+  title_pos = false,
   size = 12,
   shade_filetypes = {},
   hide_numbers = true,
@@ -55,7 +58,7 @@ local config = {
   persist_mode = true,
   close_on_exit = true,
   clear_env = false,
-  direction = "float",
+  direction = "horizontal",
   shading_factor = constants.shading_amount,
   shading_ratio = constants.shading_ratio,
   shell = vim.o.shell,
@@ -68,6 +71,10 @@ local config = {
   float_opts = {
     winblend = 0,
     title_pos = "left",
+    padding = 2,
+    border = "rounded",
+    max_width = 0,
+    max_height = 0,
   },
   responsiveness = {
     horizontal_breakpoint = 0,
